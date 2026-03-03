@@ -1,4 +1,9 @@
-FROM eclipse-temurin:25
-ADD target/*.jar Ask-AI.jar
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+COPY target/Ask-AI.jar app.jar
+
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","Ask-AI.jar"]
+
+ENTRYPOINT ["java","-jar","app.jar"]
