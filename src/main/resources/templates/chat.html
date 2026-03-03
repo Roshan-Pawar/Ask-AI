@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat </title>
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin: 2rem; background:#f9f9f9;}
+        #chatBox {border:1px solid #ccc; padding:1rem; height:400px; overflow-y:auto; background:#fff;}
+        .msg {margin:0.5rem 0;}
+        .user {color:#0b5394; font-weight:bold;}
+        .assistant {color:#38761d; font-weight:bold;}
+        #inputArea {margin-top:1rem; display:flex;}
+        #prompt {flex:1; padding:0.5rem; font-size:1rem;}
+        #sendBtn {padding:0.5rem 1rem; font-size:1rem; margin-left:0.5rem;}
+    </style>
+</head>
+<body>
+
+<h2>💬 Groq‑powered Chat (Spring Boot)</h2>
+
+<div id="chatBox"></div>
+
+<div id="inputArea">
+    <input id="prompt" type="text" placeholder="Ask something…" autocomplete="off"/>
+    <button id="sendBtn">Send</button>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const promptInput = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function addMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<span class="${role}">${role}:</span> ${text}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendPrompt() {
+        const prompt = promptInput.value.trim();
+        if (!prompt) return;
+        addMessage('user', prompt);
+        promptInput.value = '';
+        promptInput.disabled = true;
+        sendBtn.disabled = true;
+
+        try {
+            const resp = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt})
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();   // {role:"assistant", content:"…"}
+            addMessage('assistant', data.content);
+        } catch (e) {
+            addMessage('assistant', `❌ Error: ${e.message}`);
+        } finally {
+            promptInput.disabled = false;
+            sendBtn.disabled = false;
+            promptInput.focus();
+        }
+    }
+
+    // Send on button click or Enter key
+    sendBtn.addEventListener('click', sendPrompt);
+    promptInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendPrompt();
+    });
+</script>
+
+</body>
+</html>
